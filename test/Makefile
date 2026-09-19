@@ -30,14 +30,19 @@ CCINCLUDES := \
 
 DEFS :=      -D__KERNEL__ \
 	     -D__UNIT_TEST__ \
-	     -D KBUILD_MODNAME='"homa"'
+	     -D KBUILD_MODNAME='"homa"' \
+	     -D CONFIG_DEBUG_PREEMPT
 ifneq ($(__STRIP__),)
 DEFS +=      -D__STRIP__
 endif
 
 WARNS :=     -Wall -Wundef -Wno-trigraphs -Wno-sign-compare -Wuninitialized \
 		-Wno-strict-aliasing -Wunused-but-set-variable -Werror
-CFLAGS :=    $(WARNS) -Wstrict-prototypes -MD -no-pie -g $(CINCLUDES) $(DEFS) \
+ifeq ($(shell test `$(CC) -dumpversion | cut -d. -f1` -lt 15 && echo old),old)
+WARNS +=     -Wno-attributes
+endif
+CFLAGS :=    $(WARNS) -Wstrict-prototypes -MD -no-pie -g -fplan9-extensions \
+		$(CINCLUDES) $(DEFS) \
 		-fsanitize=address -fno-omit-frame-pointer
 CCFLAGS :=   -std=c++11 $(WARNS) -MD -g $(CCINCLUDES) $(DEFS) \
 		-fsanitize=address -fno-omit-frame-pointer
